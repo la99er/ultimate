@@ -86,6 +86,7 @@ public class MinimizeNwaHopcroft<LETTER, STATE> extends AbstractMinimizeNwa<LETT
 	private final IDoubleDeckerAutomaton<LETTER, STATE> mOperand;
 	private final Partition<STATE> mPartition;
 	private final Worklist<STATE> mWorklistIntCall;
+	private final Worklist<STATE> mWorklistRet;
 	/*
 	 * true only if the automaton is deterministic
 	 * This can be exploited for an efficient worklist policy, which is unsound for nondeterministic automata.
@@ -132,6 +133,7 @@ public class MinimizeNwaHopcroft<LETTER, STATE> extends AbstractMinimizeNwa<LETT
 		mIsDeterministic = CHECK_FOR_DETERMINISM ? new IsDeterministic<>(mServices, mOperand).getResult() : false;
 
 		mWorklistIntCall = Worklist.getWorklistIntCall(mOperand.size());
+		mWorklistRet = Worklist.getWorklistRet(mOperand.size());
 		mPartition = new Partition<>(mOperand, initialPartition, separateFinalsAndNonfinals, mWorklistIntCall,
 				!mIsDeterministic);
 		mInitialPartitionSize = initialPartition == null ? 0 : initialPartition.getRelation().size();
@@ -146,16 +148,30 @@ public class MinimizeNwaHopcroft<LETTER, STATE> extends AbstractMinimizeNwa<LETT
 	}
 
 	private void minimize() {
-		while (!mWorklistIntCall.isEmpty()) {
-			final Collection<STATE> splitter = mWorklistIntCall.poll();
-			final int splitterSize = splitter.size();
-			final IncomingsIntCall<LETTER, STATE> incomingsIntCall = new IncomingsIntCall<>(mOperand, splitter);
-			while (splitter.size() == splitterSize && incomingsIntCall.hasNext()) {
-				for (final STATE state : incomingsIntCall.next()) {
-					mPartition.mark(state);
-				}
-				mPartition.splitAll(splitter, incomingsIntCall.hasNext(), true, mWorklistIntCall);
+		while (true) {
+			while (!mWorklistIntCall.isEmpty()) {
+				markAndSplit(mWorklistIntCall, true);
 			}
+			if (!mWorklistRet.isEmpty()) {
+				markAndSplit(mWorklistRet, false);
+			} else {
+				// terminate
+				break;
+			}
+		}
+	}
+
+	private void markAndSplit(final Worklist<STATE> worklist, final boolean isIntCall) {
+		final Collection<STATE> splitter = worklist.poll();
+		final int splitterSize = splitter.size();
+		final Incomings<LETTER, STATE> incomings = isIntCall
+				? new IncomingsIntCall<>(mOperand, splitter)
+				: new IncomingsRet<>(mOperand, splitter, mPartition);
+		while (splitter.size() == splitterSize && incomings.hasNext()) {
+			for (final STATE state : incomings.next()) {
+				mPartition.mark(state);
+			}
+			mPartition.splitAll(splitter, incomings.hasNext(), isIntCall, worklist);
 		}
 	}
 

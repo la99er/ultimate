@@ -36,7 +36,7 @@ public class Worklist<STATE> {
 	private final Consumer<Partition<STATE>.Block> mAddBlockFunction;
 	private final Consumer<Partition<STATE>.Block> mRemoveBlockFunction;
 
-	public Worklist(final int initialCapacity, final Consumer<Partition<STATE>.Block> addBlockFunction,
+	private Worklist(final int initialCapacity, final Consumer<Partition<STATE>.Block> addBlockFunction,
 			final Consumer<Partition<STATE>.Block> removeBlockFunction) {
 		mQueue = new PriorityQueue<>(initialCapacity, new BlockComparator());
 		mAddBlockFunction = addBlockFunction;
@@ -46,6 +46,11 @@ public class Worklist<STATE> {
 	public static <STATE> Worklist<STATE> getWorklistIntCall(final int operandSize) {
 		return new Worklist<>(Math.max(operandSize, 1), Partition<STATE>.Block::addToWorklistIntCall,
 				Partition<STATE>.Block::removeFromWorklistIntCall);
+	}
+
+	public static <STATE> Worklist<STATE> getWorklistRet(final int operandSize) {
+		return new Worklist<>(Math.max(operandSize, 1), Partition<STATE>.Block::addToWorklistRet,
+				Partition<STATE>.Block::removeFromWorklistRet);
 	}
 
 	public boolean isEmpty() {

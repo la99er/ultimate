@@ -393,6 +393,7 @@ public class Partition<STATE> implements IAutomatonStatePartition<STATE> {
 		private int mAfterLast;
 		private int mAfterMarked;
 		private boolean mInWorklistIntCall;
+		private boolean mInWorklistRet;
 
 		public Block(final int first, final int last) {
 			assert first < last : "A block must contain at least one element.";
@@ -411,8 +412,18 @@ public class Partition<STATE> implements IAutomatonStatePartition<STATE> {
 		}
 
 		public void removeFromWorklistIntCall() {
-			assert mInWorklistIntCall : "Block was not in worklist.";
+			assert mInWorklistIntCall : "Block was not in worklist Ret.";
 			mInWorklistIntCall = false;
+		}
+
+		public void addToWorklistRet() {
+			assert !mInWorklistRet : "Block already was in worklist Ret.";
+			mInWorklistRet = true;
+		}
+
+		public void removeFromWorklistRet() {
+			assert mInWorklistRet : "Block was not in worklist Ret.";
+			mInWorklistRet = false;
 		}
 
 		@Override

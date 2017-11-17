@@ -26,6 +26,7 @@
  */
 package de.uni_freiburg.informatik.ultimate.automata.nestedword.operations.minimization.hopcroft;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -76,12 +77,30 @@ public class IncomingsIntCall<LETTER, STATE> extends Incomings<LETTER, STATE> {
 	}
 
 	@Override
+	public Collection<STATE> next() {
+		assert mNextLetter != null : "This iterator relies on first calling hasNext() before calling next().";
+
+		final Collection<STATE> res = new ArrayList<>();
+		for (int i = mSplitter.size() - 1; i >= mStatesIdx; --i) {
+			final STATE state = mSplitter.get(i);
+			for (final STATE pred : getPredecessors(state, mNextLetter)) {
+				res.add(pred);
+			}
+		}
+
+		assert !getVisitedLetters().contains(mNextLetter) : "A letter was visited twice.";
+		getVisitedLetters().add(mNextLetter);
+		mNextLetter = null;
+
+		return res;
+	}
+
+	@Override
 	protected Set<LETTER> getVisitedLetters() {
 		return mIsInternal ? mVisitedLettersInternal : mVisitedLettersCall;
 	}
 
-	@Override
-	protected Iterable<STATE> getPredecessors(final STATE state, final LETTER letter) {
+	private Iterable<STATE> getPredecessors(final STATE state, final LETTER letter) {
 		return new Iterable<STATE>() {
 			final Iterator<? extends IIncomingTransitionlet<LETTER, STATE>> mIt = mIsInternal
 					? mOperand.internalPredecessors(state, letter).iterator()

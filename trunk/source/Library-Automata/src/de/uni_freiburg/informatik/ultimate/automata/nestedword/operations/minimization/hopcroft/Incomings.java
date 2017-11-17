@@ -41,9 +41,9 @@ public abstract class Incomings<LETTER, STATE> implements Iterator<Iterable<STAT
 	protected Iterator<LETTER> mNextLetters;
 
 	// splitter states
-	private final ArrayList<STATE> mSplitter;
+	protected final ArrayList<STATE> mSplitter;
 	// current state index
-	private int mStatesIdx;
+	protected int mStatesIdx;
 
 	protected Incomings(final INestedWordAutomaton<LETTER, STATE> operand, final Collection<STATE> splitter) {
 		mOperand = operand;
@@ -53,38 +53,10 @@ public abstract class Incomings<LETTER, STATE> implements Iterator<Iterable<STAT
 		mNextLetters = null;
 	}
 
-	@Override
-	public Collection<STATE> next() {
-		assert mNextLetter != null : "This iterator relies on first calling hasNext() before calling next().";
-
-		final Collection<STATE> res = new ArrayList<>();
-		for (int i = mSplitter.size() - 1; i >= mStatesIdx; --i) {
-			final STATE state = mSplitter.get(i);
-			for (final STATE pred : getPredecessors(state, mNextLetter)) {
-				res.add(pred);
-			}
-		}
-
-		assert !getVisitedLetters().contains(mNextLetter) : "A letter was visited twice.";
-		getVisitedLetters().add(mNextLetter);
-		mNextLetter = null;
-
-		return res;
-	}
-
 	/**
 	 * @return The visited letters.
 	 */
 	protected abstract Set<LETTER> getVisitedLetters();
-
-	/**
-	 * @param state
-	 *            Successor state.
-	 * @param letter
-	 *            letter
-	 * @return an iterable of predecessor states
-	 */
-	protected abstract Iterable<STATE> getPredecessors(STATE state, LETTER letter);
 
 	protected final boolean hasStatesLeft() {
 		return mStatesIdx < mSplitter.size();
