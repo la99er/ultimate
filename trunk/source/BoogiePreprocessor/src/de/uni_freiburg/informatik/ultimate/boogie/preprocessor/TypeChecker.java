@@ -62,6 +62,7 @@ import de.uni_freiburg.informatik.ultimate.boogie.ast.ConstDeclaration;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.Declaration;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.EnsuresSpecification;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.Expression;
+import de.uni_freiburg.informatik.ultimate.boogie.ast.ForkStatement;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.FunctionApplication;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.FunctionDeclaration;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.GotoStatement;
@@ -70,6 +71,7 @@ import de.uni_freiburg.informatik.ultimate.boogie.ast.IdentifierExpression;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.IfStatement;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.IfThenElseExpression;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.IntegerLiteral;
+import de.uni_freiburg.informatik.ultimate.boogie.ast.JoinStatement;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.Label;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.LeftHandSide;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.LoopInvariantSpecification;
@@ -952,6 +954,14 @@ public class TypeChecker extends BaseObserver {
 						typeError(statement, "Type mismatch (output parameter " + i + ") in " + statement);
 					}
 				}
+			}
+		} else if (statement instanceof ForkStatement) {
+			// TODO: implement type checker for fork statement
+		} else if (statement instanceof JoinStatement) {
+			final JoinStatement join = (JoinStatement) statement;
+			final Expression expr = join.getForkID();
+			if (expr == null) {
+				typeError(statement, "Expression " + expr + " does not exist.");
 			}
 		} else {
 			internalError("Not implemented: type checking for " + statement);
