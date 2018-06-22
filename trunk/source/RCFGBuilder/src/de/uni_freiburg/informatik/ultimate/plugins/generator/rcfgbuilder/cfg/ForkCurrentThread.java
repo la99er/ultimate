@@ -33,9 +33,9 @@ import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
 
 /**
  * Edge in a recursive control flow graph that represents a fork call. Opposed to a Summary this represents only
- * the execution from the position directly before the fork statement to the initial position of the forked procedure. A
- * Fork object provides three  
- * 
+ * the execution from the position directly before the fork statement to the next position of the current thread. A
+ * ForkCurrentThread object provides one auxiliary TransitionFormula which shows fork th_id_X, where X is the number
+ * of the created thread.
  *
  * @author lars.nitzke@outlook.com
  */

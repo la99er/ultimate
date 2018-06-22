@@ -33,8 +33,10 @@ import de.uni_freiburg.informatik.ultimate.core.model.services.ILogger;
 
 /**
  * Edge in a recursive control flow graph that represents a fork call. Opposed to a Summary this represents only
- * the execution from the position directly before the fork statement to the initial position of the forked procedure. 
- *
+ * the execution from the position directly before the fork statement to the initial position of the forked procedure. A
+ * ForkOtherThread object provides three auxiliary TransitionFormulas. Two of them assign the global variables th_id_X 
+ * and th_X_inUse. The other one shows the actual fork statement of the code.
+ * 
  * @author lars.nitzke@outlook.com
  */
 public class ForkOtherThread extends CodeBlock {
