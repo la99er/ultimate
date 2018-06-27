@@ -480,6 +480,10 @@ Statement ::=
 	     * is referring to.
 	     */
 		forkID  : Expression
+		/**
+		 * The variables where the return values are written to.
+		 */
+		lhs       : VariableLHS[]
 	| { /**
 	     * An if statements.  The condition is evaluated and according to
 	     * the result either the then part or else part is executed.  Note

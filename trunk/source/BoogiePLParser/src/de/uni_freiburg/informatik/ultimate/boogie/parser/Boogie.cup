@@ -721,6 +721,8 @@ stmt ::=
 	  {: RESULT = s; :}
 	| callStmt:s
 	| forkStmt:s
+	| ASYNC joinStmt:s
+	  {: RESULT = s; :}
 	| joinStmt:s
 	;
 callStmt ::= 
@@ -736,10 +738,12 @@ forkStmt ::=
       FORK:x expr:i ID:m LPAR:y exprCommaStar:e RPAR SEMI
 	  {: RESULT = new ForkStatement(getLocation(x$,e$,false), i, m, e.toArray(new Expression[e.size()])); :}
 	;
-/* Example: join 5; */
+/* Example: join 5; or join x := 5; */
 joinStmt ::=
       JOIN:x expr:i SEMI
-	  {: RESULT = new JoinStatement(getLocation(x$,i$,false), i); :}
+	  {: RESULT = new JoinStatement(getLocation(x$,i$,false), i, new VariableLHS[0]); :}
+	| JOIN:x varCommaPlus:ass COLONEQUALS expr:i SEMI
+	  {: RESULT = new JoinStatement(getLocation(x$,i$,false), i, ass.toArray(new VariableLHS[ass.size()])); :}
 	;
 ifStmt ::=
 	  IF:x LPAR wildcardExpr:c RPAR blockStmt:block elseOpt:e

@@ -3,8 +3,11 @@
 package de.uni_freiburg.informatik.ultimate.boogie.ast;
 
 import java.util.List;
+import java.util.Arrays;
+import java.util.ArrayList;
 import de.uni_freiburg.informatik.ultimate.core.model.models.ILocation;
 import de.uni_freiburg.informatik.ultimate.boogie.ast.BoogieASTNode;
+import java.util.Arrays;
 /**
  * A join statement waits for a procedure (which was called
  * with fork before) to termiate.
@@ -20,14 +23,21 @@ public class JoinStatement extends Statement {
     Expression forkID;
 
     /**
+     * The variables where the return values are written to.
+     */
+    VariableLHS[] lhs;
+
+    /**
      * The constructor taking initial values.
      * @param loc the location of this node
      * @param forkID the id of the fork expression, to which the join statement
      * is referring to.
+     * @param lhs the variables where the return values are written to.
      */
-    public JoinStatement(ILocation loc, Expression forkID) {
+    public JoinStatement(ILocation loc, Expression forkID, VariableLHS[] lhs) {
         super(loc);
         this.forkID = forkID;
+        this.lhs = lhs;
         assert VALIDATOR == null || VALIDATOR.test(this) : "Invalid JoinStatement: " + this;
     }
 
@@ -38,6 +48,17 @@ public class JoinStatement extends Statement {
         StringBuffer sb = new StringBuffer();
         sb.append("JoinStatement").append('[');
         sb.append(forkID);
+        sb.append(',');
+        if (lhs == null) {
+            sb.append("null");
+        } else {
+            sb.append('[');
+            for(int i1 = 0; i1 < lhs.length; i1++) {
+                if (i1 > 0) sb.append(',');
+                    sb.append(lhs[i1]);
+            }
+            sb.append(']');
+        }
         return sb.append(']').toString();
     }
 
@@ -51,9 +72,20 @@ public class JoinStatement extends Statement {
         return forkID;
     }
 
+    /**
+     * Gets the variables where the return values are written to.
+     * @return the variables where the return values are written to.
+     */
+    public VariableLHS[] getLhs() {
+        return lhs;
+    }
+
     public List<BoogieASTNode> getOutgoingNodes() {
         List<BoogieASTNode> children = super.getOutgoingNodes();
         children.add(forkID);
+        if(lhs!=null){
+            children.addAll(Arrays.asList(lhs));
+        }
         return children;
     }
 
@@ -65,6 +97,11 @@ public class JoinStatement extends Statement {
         if(visitor.visit(this)){
             if(forkID!=null){
                 forkID.accept(visitor);
+            }
+            if(lhs!=null){
+                for(VariableLHS elem : lhs){
+                    elem.accept(visitor);
+                }
             }
         }
     }
@@ -79,8 +116,17 @@ public class JoinStatement extends Statement {
         if(forkID != null){
             newforkID = forkID.accept(visitor);
         }
-        if(forkID != newforkID){
-            return new JoinStatement(loc, newforkID);
+        boolean isChanged=false;
+            ArrayList<VariableLHS> tmpListnewlhs = new ArrayList<>();
+        if(lhs != null){
+            for(VariableLHS elem : lhs){
+                VariableLHS newlhs = elem.accept(visitor);
+                isChanged = isChanged || newlhs != elem;
+                tmpListnewlhs.add(elem.accept(visitor));
+            }
+        }
+        if(isChanged || forkID != newforkID){
+            return new JoinStatement(loc, newforkID, tmpListnewlhs.toArray(new VariableLHS[0]));
         }
         return this;
     }

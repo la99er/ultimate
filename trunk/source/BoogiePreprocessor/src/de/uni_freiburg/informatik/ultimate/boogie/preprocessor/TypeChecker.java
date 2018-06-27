@@ -957,6 +957,26 @@ public class TypeChecker extends BaseObserver {
 			}
 		} else if (statement instanceof ForkStatement) {
 			// TODO: implement type checker for fork statement
+			final ForkStatement fork = (ForkStatement) statement;
+			final ProcedureInfo procInfo = mDeclaredProcedures.get(fork.getMethodName());
+			if (procInfo == null) {
+				typeError(statement, "Forking undeclared procedure " + fork);
+				return;
+			}
+			// TODO: checkModifiesTransitives for forkStatement
+			final BoogieType[] typeParams = new BoogieType[procInfo.getTypeParameters().getCount()];
+			final VariableInfo[] inParams = procInfo.getInParams();
+			final Expression[] arguments = fork.getArguments();
+			if (arguments.length != inParams.length) {
+				typeError(statement, "Procedure forked with wrong number of arguments: " + fork);
+				return;
+			}
+			for (int i = 0; i < arguments.length; i++) {
+				final BoogieType t = typecheckExpression(arguments[i]);
+				if (!inParams[i].getType().unify(t, typeParams)) {
+					typeError(statement, "Wrong parameter type at index " + i + ": " + fork);
+				}
+			}
 		} else if (statement instanceof JoinStatement) {
 			final JoinStatement join = (JoinStatement) statement;
 			final Expression expr = join.getForkID();
